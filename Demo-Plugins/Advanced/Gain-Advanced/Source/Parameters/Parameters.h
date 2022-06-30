@@ -13,3 +13,6 @@
 
 const extern juce::String gainID;
 const extern juce::String gainName;
+
+const extern juce::String phaseID;
+const extern juce::String phaseName;

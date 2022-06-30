@@ -59,6 +59,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     juce::AudioProcessorValueTreeState treeState;
+    
+    bool mute = false;
+    
+    float getRMS();
 
 private:
     
@@ -66,6 +70,8 @@ private:
     void parameterChanged (const juce::String& parameterID, float newValue) override;
     
     juce::dsp::Gain<float> gainProcessor;
+    juce::SmoothedValue<double> levelGain = -60.0;
+    double levelDB;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GainAdvancedAudioProcessor)
 };

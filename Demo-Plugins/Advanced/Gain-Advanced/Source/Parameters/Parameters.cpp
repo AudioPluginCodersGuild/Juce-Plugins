@@ -12,3 +12,6 @@
 
 const juce::String gainID = "gain";
 const juce::String gainName = "Gain";
+
+const juce::String phaseID = "phase";
+const juce::String phaseName = "Phase";

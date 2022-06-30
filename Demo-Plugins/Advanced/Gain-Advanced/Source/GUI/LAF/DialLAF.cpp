@@ -21,8 +21,8 @@ void DialStyle::drawRotarySlider (juce::Graphics& g, int x, int y, int width, in
     /** Define color variables for customization. */
     const auto outlineColor  = slider.findColour (juce::Slider::rotarySliderOutlineColourId);
     const auto fillColor     = juce::Colour::fromRGB(245, 117, 191).withAlpha(0.6f);
-    const auto mainColor     = juce::Colour::fromRGB(168, 132, 222).withAlpha(0.6f);
-    const auto brighterColor = juce::Colour::fromRGB(168, 132, 222).brighter(0.4f).withAlpha(0.6f);
+    const auto mainColor     = slider.findColour(juce::Slider::ColourIds::thumbColourId);
+    const auto brighterColor = slider.findColour(juce::Slider::ColourIds::thumbColourId).brighter(0.4f);
     const auto trackColor    = slider.findColour(juce::Slider::ColourIds::trackColourId);
     const auto dialOutlineColor = slider.findColour (juce::Slider::backgroundColourId);
 

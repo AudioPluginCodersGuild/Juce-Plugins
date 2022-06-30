@@ -5,6 +5,12 @@
   <MAINGROUP id="sxqWJf" name="Gain-Advanced">
     <GROUP id="{B6BADF18-26B0-D752-5D3B-44B77C4D3A99}" name="Source">
       <GROUP id="{351D059C-FAC4-0977-7E5F-77A710F0AE67}" name="GUI">
+        <GROUP id="{4F6D0E35-16A9-7DEF-3CF9-F7A35EADDE8A}" name="Buttons">
+          <FILE id="ZvNsJt" name="ButtonProps.cpp" compile="1" resource="0" file="Source/GUI/Buttons/ButtonProps.cpp"/>
+        </GROUP>
+        <GROUP id="{06A6E92E-F4E7-6A78-04A3-A4968DAE3C77}" name="Labels">
+          <FILE id="iQzAI1" name="LabelProps.cpp" compile="1" resource="0" file="Source/GUI/Labels/LabelProps.cpp"/>
+        </GROUP>
         <GROUP id="{DCFAEFF1-D8B3-99B2-F6EE-B035C9752F24}" name="LAF">
           <FILE id="bRUeOC" name="DialLAF.cpp" compile="1" resource="0" file="Source/GUI/LAF/DialLAF.cpp"/>
           <FILE id="hoVoiN" name="DialLAF.h" compile="0" resource="0" file="Source/GUI/LAF/DialLAF.h"/>

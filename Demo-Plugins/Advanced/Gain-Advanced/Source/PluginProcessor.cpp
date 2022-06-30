@@ -24,11 +24,17 @@ GainAdvancedAudioProcessor::GainAdvancedAudioProcessor()
 #endif
 {
     treeState.addParameterListener(gainID, this);
+    treeState.addParameterListener(phaseID, this);
+    treeState.addParameterListener("mix", this);
+
 }
 
 GainAdvancedAudioProcessor::~GainAdvancedAudioProcessor()
 {
     treeState.removeParameterListener(gainID, this);
+    treeState.removeParameterListener(phaseID, this);
+    treeState.addParameterListener("mix", this);
+
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout GainAdvancedAudioProcessor::createParameterLayout()
@@ -36,8 +42,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout GainAdvancedAudioProcessor::
     std::vector <std::unique_ptr<juce::RangedAudioParameter>> params;
         
     auto pGain = std::make_unique<juce::AudioParameterFloat>(gainID, gainName, -60.0f, 24.0f, 0.0f);
+    auto pPhase = std::make_unique<juce::AudioParameterBool>(phaseID, phaseName, false);
+    auto pMix = std::make_unique<juce::AudioParameterFloat>("mix", "Mix", 0.0f, 100.0f, 0.0f);
     
     params.push_back(std::move(pGain));
+    params.push_back(std::move(pPhase));
+    params.push_back(std::move(pMix));
     
     return { params.begin(), params.end() };
 }
@@ -121,6 +131,8 @@ void GainAdvancedAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     gainProcessor.prepare(spec);
     gainProcessor.setRampDurationSeconds(0.02);
     gainProcessor.setGainDecibels(treeState.getRawParameterValue(gainID)->load());
+    
+    levelGain.reset(sampleRate, 0.1);
 }
 
 void GainAdvancedAudioProcessor::releaseResources()
@@ -163,6 +175,41 @@ void GainAdvancedAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     juce::dsp::AudioBlock<float> audioBlock {buffer};
     gainProcessor.process(juce::dsp::ProcessContextReplacing<float>(audioBlock));
+    
+    
+    // Flip phase
+    if (treeState.getRawParameterValue(phaseID)->load())
+    {
+        for (int ch = 0; ch < audioBlock.getNumChannels(); ++ch)
+        {
+            float* data = audioBlock.getChannelPointer(ch);
+                    
+            for (int sample = 0; sample < audioBlock.getNumSamples(); ++sample)
+            {
+                data[sample] *= -1.0;
+            }
+        }
+    }
+    
+    levelGain.skip(buffer.getNumSamples());
+    levelDB = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, 0, buffer.getNumSamples()));
+    
+    if (levelDB < levelGain.getCurrentValue())
+    {
+        levelGain.setTargetValue(levelDB);
+    }
+
+    else
+    {
+        levelGain.setCurrentAndTargetValue(levelDB);
+    }
+
+    levelDB = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, 0, buffer.getNumSamples()));
+}
+
+float GainAdvancedAudioProcessor::getRMS()
+{
+    return levelDB;
 }
 
 //==============================================================================
@@ -180,15 +227,20 @@ juce::AudioProcessorEditor* GainAdvancedAudioProcessor::createEditor()
 //==============================================================================
 void GainAdvancedAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    // Save params
+    juce::MemoryOutputStream stream(destData, false);
+    treeState.state.writeToStream (stream);
 }
 
 void GainAdvancedAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    // Recall params
+    auto tree = juce::ValueTree::readFromData (data, size_t(sizeInBytes));
+    
+    if (tree.isValid())
+    {
+        treeState.state = tree;
+    }
 }
 
 //==============================================================================
