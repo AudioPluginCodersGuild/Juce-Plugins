@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "./Parameters/Parameters.h"
 
 //==============================================================================
 /**
@@ -66,6 +67,10 @@ private:
     juce::dsp::Gain<float> inputModule;
     juce::dsp::Gain<float> outputModule;
     juce::dsp::Compressor<float> compressorModule;
+    juce::dsp::Bias<float> biasModule;
+    juce::dsp::Bias<float> postBiasModule;
+    juce::dsp::LinkwitzRileyFilter<float> hpFilterModule;
+    juce::dsp::Limiter<float> limiterModule;
     void updateParameters();
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompressorAdvancedAudioProcessor)

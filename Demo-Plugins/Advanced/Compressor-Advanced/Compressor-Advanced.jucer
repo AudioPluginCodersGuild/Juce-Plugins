@@ -5,9 +5,20 @@
               companyName="Audio Plugin Coders Guild">
   <MAINGROUP id="wZFbaG" name="Compressor-Advanced">
     <GROUP id="{DA25224A-928C-5DDD-DE1C-C627094F2C75}" name="Source">
+      <GROUP id="{849A8735-6BDD-FE96-AFCF-30E4EEFA7DDD}" name="Parameters">
+        <FILE id="Nfzf90" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters/Parameters.cpp"/>
+        <FILE id="ztS4Pn" name="Parameters.h" compile="0" resource="0" file="Source/Parameters/Parameters.h"/>
+      </GROUP>
       <GROUP id="{45764032-78A7-C5C8-9A5E-EF143A8A7F21}" name="GUI">
+        <GROUP id="{83AB86DF-9622-F157-78F1-A15535177785}" name="Groups">
+          <FILE id="XHPo9c" name="GroupProps.cpp" compile="1" resource="0" file="Source/GUI/Groups/GroupProps.cpp"/>
+        </GROUP>
         <GROUP id="{485BAEDE-F198-D17F-1B6F-BA5A99C0CF69}" name="Labels">
           <FILE id="tZsMQK" name="LabelProps.cpp" compile="1" resource="0" file="Source/GUI/Labels/LabelProps.cpp"/>
+        </GROUP>
+        <GROUP id="{4D1C1E63-079E-D6DF-558A-38461D9446C2}" name="LookAndFeel">
+          <FILE id="fK8zhm" name="DialLAF.cpp" compile="1" resource="0" file="Source/GUI/LookAndFeel/DialLAF.cpp"/>
+          <FILE id="Ss1HBZ" name="DialLAF.h" compile="0" resource="0" file="Source/GUI/LookAndFeel/DialLAF.h"/>
         </GROUP>
         <GROUP id="{CF23D5D3-3B2A-2AA3-448B-9F634C04E2BA}" name="Sliders">
           <FILE id="Gr4LF8" name="SliderProps.cpp" compile="1" resource="0" file="Source/GUI/Sliders/SliderProps.cpp"/>

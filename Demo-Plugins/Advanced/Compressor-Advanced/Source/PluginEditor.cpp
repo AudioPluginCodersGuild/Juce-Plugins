@@ -17,6 +17,8 @@ CompressorAdvancedAudioProcessorEditor::CompressorAdvancedAudioProcessorEditor (
 , ratioDialLabel("Ratio", "Ratio")
 , attackDialLabel("Attack", "Attack")
 , releaseDialLabel("Release", "Release")
+, limiterThreshDialLabel("Thresh", "Thresh")
+, limiterReleaseDialLabel("Release", "Release")
 , outputDialLabel("Output", "Output")
 {
     for (int i = 0; i < dials.size(); i++)
@@ -24,10 +26,17 @@ CompressorAdvancedAudioProcessorEditor::CompressorAdvancedAudioProcessorEditor (
         setCommonSliderProps(*dials[i]);
     }
     
+    attachSliders();
+    
     for (int i = 0; i < dialLabels.size(); i++)
     {
         setCommonLabelProps(*dialLabels[i]);
         dialLabels[i]->attachToComponent(dials[i], false);
+    }
+    
+    for (int i = 0; i < groups.size(); i++)
+    {
+        setGroupProps(*groups[i]);
     }
     
     setSize (1000, 500);
@@ -38,6 +47,11 @@ CompressorAdvancedAudioProcessorEditor::CompressorAdvancedAudioProcessorEditor (
 
 CompressorAdvancedAudioProcessorEditor::~CompressorAdvancedAudioProcessorEditor()
 {
+    for (auto& dial : dials)
+    {
+        dial->setLookAndFeel(nullptr);
+    }
+    
     dials.clear();
     dials.shrink_to_fit();
 }
@@ -48,59 +62,46 @@ void CompressorAdvancedAudioProcessorEditor::paint (juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.setGradientFill(juce::ColourGradient::vertical(juce::Colour::fromRGB(40, 42, 53).darker(0.75f), getHeight(), juce::Colour::fromRGB(40, 42, 53).brighter(0.02f), getHeight() * 0.4));
     g.fillRect(getLocalBounds());
+    
+    for (int i = 0; i < dials.size(); i++)
+    {
+        setCommonSliderProps(*dials[i]);
+    }
 }
 
 void CompressorAdvancedAudioProcessorEditor::resized()
 {
-    
-    auto dialSize = getWidth() * 0.2;
-    auto mainLeftMargin = getWidth() * 0.15;
+    auto dialSize = getWidth() * 0.18;
+    auto mainLeftMargin = getWidth() * 0.3;
     auto leftMargin = getWidth() * 0.03;
+    auto secondRowHeight = 1.3;
+    auto limiterMargin = 1.43;
+    auto groupY = 0.1;
+    auto groupHeight = 2.4;
     
     inputDial.setBounds(leftMargin, 50, dialSize, dialSize);
-    threshDial.setBounds(inputDial.getX() + inputDial.getWidth(), 50, dialSize, dialSize);
+    threshDial.setBounds(mainLeftMargin, 50, dialSize, dialSize);
     ratioDial.setBounds(threshDial.getX() + threshDial.getWidth(), 50, dialSize, dialSize);
     
-    outputDial.setBounds(leftMargin, inputDial.getY() + inputDial.getHeight(), dialSize, dialSize);
+    ioGroup.setBounds(inputDial.getX(), inputDial.getY() * groupY, inputDial.getWidth(),
+                      inputDial.getY() + inputDial.getHeight() * groupHeight);
+    
+    outputDial.setBounds(leftMargin, inputDial.getY() + inputDial.getHeight() * secondRowHeight, dialSize, dialSize);
     attackDial.setBounds(threshDial.getX(), outputDial.getY(), dialSize, dialSize);
     releaseDial.setBounds(ratioDial.getX(), outputDial.getY(), dialSize, dialSize);
     
-//    // Row 1
-//    juce::FlexBox flexboxRowOne;
-//    flexboxRowOne.flexDirection = juce::FlexBox::Direction::row;
-//    flexboxRowOne.flexWrap = juce::FlexBox::Wrap::noWrap;
-//    flexboxRowOne.alignContent = juce::FlexBox::AlignContent::center;
-//
-//    juce::Array<juce::FlexItem> itemArrayRowOne;
-//
-//    itemArrayRowOne.add(juce::FlexItem(dialSize, dialSize, inputDial)
-//                        .withMargin(juce::FlexItem::Margin(0, 0, 0, leftMargin)));
-//    itemArrayRowOne.add(juce::FlexItem(dialSize, dialSize, threshDial)
-//                        .withMargin(juce::FlexItem::Margin(0, 0, 0, mainLeftMargin)));
-//    itemArrayRowOne.add(juce::FlexItem(dialSize, dialSize, ratioDial)
-//                        .withMargin(juce::FlexItem::Margin(0, 0, 0, 0)));
-//
-//    flexboxRowOne.items = itemArrayRowOne;
-//    flexboxRowOne.performLayout(getLocalBounds().withY(0).withHeight(getHeight() * 0.5));
-//
-//    // Row 2
-//    juce::FlexBox flexboxRowTwo;
-//    flexboxRowTwo.flexDirection = juce::FlexBox::Direction::row;
-//    flexboxRowTwo.flexWrap = juce::FlexBox::Wrap::noWrap;
-//    flexboxRowTwo.alignContent = juce::FlexBox::AlignContent::center;
-//
-//    juce::Array<juce::FlexItem> itemArrayRowTwo;
-//
-//    itemArrayRowTwo.add(juce::FlexItem(dialSize, dialSize, outputDial)
-//                        .withMargin(juce::FlexItem::Margin(0, 0, 0, leftMargin)));
-//    itemArrayRowTwo.add(juce::FlexItem(dialSize, dialSize, attackDial)
-//                        .withMargin(juce::FlexItem::Margin(0, 0, 0, mainLeftMargin)));
-//    itemArrayRowTwo.add(juce::FlexItem(dialSize, dialSize, releaseDial)
-//                        .withMargin(juce::FlexItem::Margin(0, 0, 0, 0)));
-//
-//    flexboxRowTwo.items = itemArrayRowTwo;
-//    flexboxRowTwo.performLayout(getLocalBounds().withY(getHeight() * 0.5).withHeight(getHeight() * 0.5));
+    compressorGroup.setBounds(threshDial.getX(), threshDial.getY() * groupY, threshDial.getWidth() * 2.0,
+                              threshDial.getY() + threshDial.getHeight() * groupHeight);
     
+    limiterThreshDial.setBounds(ratioDial.getX() + ratioDial.getWidth() * limiterMargin,
+                                inputDial.getY(), dialSize, dialSize);
+    
+    limiterReleaseDial.setBounds(limiterThreshDial.getX(),
+                                 limiterThreshDial.getY() + limiterThreshDial.getHeight() * secondRowHeight,
+                                 dialSize, dialSize);
+    
+    limiterGroup.setBounds(limiterThreshDial.getX(), limiterThreshDial.getY() * groupY, limiterThreshDial.getWidth(),
+                           limiterThreshDial.getY() + limiterThreshDial.getHeight() * groupHeight);
 }
 
 

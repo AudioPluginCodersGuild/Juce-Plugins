@@ -23,22 +23,26 @@ CompressorAdvancedAudioProcessor::CompressorAdvancedAudioProcessor()
 , treeState(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
-    treeState.addParameterListener("input", this);
-    treeState.addParameterListener("thresh", this);
-    treeState.addParameterListener("ratio", this);
-    treeState.addParameterListener("attack", this);
-    treeState.addParameterListener("release", this);
-    treeState.addParameterListener("output", this);
+    treeState.addParameterListener(inputID, this);
+    treeState.addParameterListener(threshID, this);
+    treeState.addParameterListener(ratioID, this);
+    treeState.addParameterListener(attackID, this);
+    treeState.addParameterListener(releaseID, this);
+    treeState.addParameterListener(LThreshID, this);
+    treeState.addParameterListener(LReleaseID, this);
+    treeState.addParameterListener(outputID, this);
 }
 
 CompressorAdvancedAudioProcessor::~CompressorAdvancedAudioProcessor()
 {
-    treeState.removeParameterListener("input", this);
-    treeState.removeParameterListener("thresh", this);
-    treeState.removeParameterListener("ratio", this);
-    treeState.removeParameterListener("attack", this);
-    treeState.removeParameterListener("release", this);
-    treeState.removeParameterListener("output", this);
+    treeState.removeParameterListener(inputID, this);
+    treeState.removeParameterListener(threshID, this);
+    treeState.removeParameterListener(ratioID, this);
+    treeState.removeParameterListener(attackID, this);
+    treeState.removeParameterListener(releaseID, this);
+    treeState.removeParameterListener(LThreshID, this);
+    treeState.removeParameterListener(LReleaseID, this);
+    treeState.removeParameterListener(outputID, this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAdvancedAudioProcessor::createParameterLayout()
@@ -51,18 +55,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAdvancedAudioProce
     juce::NormalisableRange<float> releaseRange = juce::NormalisableRange<float>(5.0f, 5000.0f, 1.0f);
     releaseRange.setSkewForCentre(160.0f);
     
-    auto pInput = std::make_unique<juce::AudioParameterFloat>("input", "Input", -60.0f, 24.0f, 0.0f);
-    auto pThresh = std::make_unique<juce::AudioParameterFloat>("thresh", "Thresh", -60.0f, 10.0f, 0.0f);
-    auto pRatio = std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", 1.0f, 20.0f, 1.0f);
-    auto pAttack = std::make_unique<juce::AudioParameterFloat>("attack", "Attack", attackRange, 50.0f);
-    auto pRelease = std::make_unique<juce::AudioParameterFloat>("release", "Release", releaseRange, 160.0f);
-    auto pOutput = std::make_unique<juce::AudioParameterFloat>("output", "Output", -60.0f, 24.0f, 0.0f);
+    juce::NormalisableRange<float> LReleaseRange = juce::NormalisableRange<float>(1.0f, 1000.0f, 1.0f);
+    LReleaseRange.setSkewForCentre(250.0f);
+    
+    auto pInput = std::make_unique<juce::AudioParameterFloat>(inputID, inputName, -60.0f, 24.0f, 0.0f);
+    auto pThresh = std::make_unique<juce::AudioParameterFloat>(threshID, threshName, -60.0f, 10.0f, 0.0f);
+    auto pRatio = std::make_unique<juce::AudioParameterFloat>(ratioID, ratioName, 1.0f, 20.0f, 1.0f);
+    auto pAttack = std::make_unique<juce::AudioParameterFloat>(attackID, attackName, attackRange, 50.0f);
+    auto pRelease = std::make_unique<juce::AudioParameterFloat>(releaseID, releaseName, releaseRange, 160.0f);
+    auto pLThresh = std::make_unique<juce::AudioParameterFloat>(LThreshID, LThreshName, -60.0f, 0.0f, 0.0f);
+    auto pLRelease = std::make_unique<juce::AudioParameterFloat>(LReleaseID, LReleaseName, LReleaseRange, 250.0f);
+    auto pOutput = std::make_unique<juce::AudioParameterFloat>(outputID, outputName, -60.0f, 24.0f, 0.0f);
 
     params.push_back(std::move(pInput));
     params.push_back(std::move(pThresh));
     params.push_back(std::move(pRatio));
     params.push_back(std::move(pAttack));
     params.push_back(std::move(pRelease));
+    params.push_back(std::move(pLThresh));
+    params.push_back(std::move(pLRelease));
     params.push_back(std::move(pOutput));
     
     return { params.begin(), params.end() };
@@ -76,12 +87,14 @@ void CompressorAdvancedAudioProcessor::parameterChanged(const juce::String &para
 void CompressorAdvancedAudioProcessor::updateParameters()
 {
     // Update all DSP module parameters
-    inputModule.setGainDecibels(treeState.getRawParameterValue("input")->load());
-    compressorModule.setThreshold(treeState.getRawParameterValue("thresh")->load());
-    compressorModule.setRatio(treeState.getRawParameterValue("ratio")->load());
-    compressorModule.setAttack(treeState.getRawParameterValue("attack")->load());
-    compressorModule.setRelease(treeState.getRawParameterValue("release")->load());
-    outputModule.setGainDecibels(treeState.getRawParameterValue("output")->load());
+    inputModule.setGainDecibels(treeState.getRawParameterValue(inputID)->load());
+    compressorModule.setThreshold(treeState.getRawParameterValue(threshID)->load());
+    compressorModule.setRatio(treeState.getRawParameterValue(ratioID)->load());
+    compressorModule.setAttack(treeState.getRawParameterValue(attackID)->load());
+    compressorModule.setRelease(treeState.getRawParameterValue(releaseID)->load());
+    limiterModule.setThreshold(treeState.getRawParameterValue(LThreshID)->load());
+    limiterModule.setRelease(treeState.getRawParameterValue(LReleaseID)->load());
+    outputModule.setGainDecibels(treeState.getRawParameterValue(outputID)->load());
 }
 
 //==============================================================================
@@ -161,6 +174,8 @@ void CompressorAdvancedAudioProcessor::prepareToPlay (double sampleRate, int sam
     outputModule.setRampDurationSeconds(0.02);
     outputModule.prepare(spec);
     compressorModule.prepare(spec);
+    limiterModule.prepare(spec);
+    
     updateParameters();
 }
 
@@ -207,6 +222,7 @@ void CompressorAdvancedAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     // Process DSP modules
     inputModule.process(juce::dsp::ProcessContextReplacing<float>(block));
     compressorModule.process(juce::dsp::ProcessContextReplacing<float>(block));
+    limiterModule.process(juce::dsp::ProcessContextReplacing<float>(block));
     outputModule.process(juce::dsp::ProcessContextReplacing<float>(block));
 }
 
