@@ -35,5 +35,6 @@ extern const juce::String LReleaseName;
 extern const juce::String outputID;
 extern const juce::String outputName;
 
-
+extern const juce::String compMixID;
+extern const juce::String compMixName;
 

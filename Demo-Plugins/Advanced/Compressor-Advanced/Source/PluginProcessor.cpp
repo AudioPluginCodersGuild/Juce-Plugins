@@ -31,6 +31,7 @@ CompressorAdvancedAudioProcessor::CompressorAdvancedAudioProcessor()
     treeState.addParameterListener(LThreshID, this);
     treeState.addParameterListener(LReleaseID, this);
     treeState.addParameterListener(outputID, this);
+    treeState.addParameterListener(compMixID, this);
 }
 
 CompressorAdvancedAudioProcessor::~CompressorAdvancedAudioProcessor()
@@ -43,6 +44,7 @@ CompressorAdvancedAudioProcessor::~CompressorAdvancedAudioProcessor()
     treeState.removeParameterListener(LThreshID, this);
     treeState.removeParameterListener(LReleaseID, this);
     treeState.removeParameterListener(outputID, this);
+    treeState.removeParameterListener(compMixID, this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAdvancedAudioProcessor::createParameterLayout()
@@ -66,6 +68,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAdvancedAudioProce
     auto pLThresh = std::make_unique<juce::AudioParameterFloat>(LThreshID, LThreshName, -60.0f, 0.0f, 0.0f);
     auto pLRelease = std::make_unique<juce::AudioParameterFloat>(LReleaseID, LReleaseName, LReleaseRange, 250.0f);
     auto pOutput = std::make_unique<juce::AudioParameterFloat>(outputID, outputName, -60.0f, 24.0f, 0.0f);
+    auto pCompMix = std::make_unique<juce::AudioParameterFloat>(compMixID, compMixName, 0.0f, 1.0f, 1.0f);
 
     params.push_back(std::move(pInput));
     params.push_back(std::move(pThresh));
@@ -75,6 +78,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAdvancedAudioProce
     params.push_back(std::move(pLThresh));
     params.push_back(std::move(pLRelease));
     params.push_back(std::move(pOutput));
+    params.push_back(std::move(pCompMix));
     
     return { params.begin(), params.end() };
 }
@@ -88,10 +92,11 @@ void CompressorAdvancedAudioProcessor::updateParameters()
 {
     // Update all DSP module parameters
     inputModule.setGainDecibels(treeState.getRawParameterValue(inputID)->load());
-    compressorModule.setThreshold(treeState.getRawParameterValue(threshID)->load());
-    compressorModule.setRatio(treeState.getRawParameterValue(ratioID)->load());
-    compressorModule.setAttack(treeState.getRawParameterValue(attackID)->load());
-    compressorModule.setRelease(treeState.getRawParameterValue(releaseID)->load());
+    lvCompressorModule.setThreshold(treeState.getRawParameterValue(threshID)->load());
+    lvCompressorModule.setRatio(treeState.getRawParameterValue(ratioID)->load());
+    lvCompressorModule.setAttack(treeState.getRawParameterValue(attackID)->load());
+    lvCompressorModule.setRelease(treeState.getRawParameterValue(releaseID)->load());
+    lvCompressorModule.setMix(treeState.getRawParameterValue(compMixID)->load());
     limiterModule.setThreshold(treeState.getRawParameterValue(LThreshID)->load());
     limiterModule.setRelease(treeState.getRawParameterValue(LReleaseID)->load());
     outputModule.setGainDecibels(treeState.getRawParameterValue(outputID)->load());
@@ -173,7 +178,7 @@ void CompressorAdvancedAudioProcessor::prepareToPlay (double sampleRate, int sam
     inputModule.setRampDurationSeconds(0.02);
     outputModule.setRampDurationSeconds(0.02);
     outputModule.prepare(spec);
-    compressorModule.prepare(spec);
+    lvCompressorModule.prepare(spec);
     limiterModule.prepare(spec);
     
     updateParameters();
@@ -221,7 +226,7 @@ void CompressorAdvancedAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     
     // Process DSP modules
     inputModule.process(juce::dsp::ProcessContextReplacing<float>(block));
-    compressorModule.process(juce::dsp::ProcessContextReplacing<float>(block));
+    lvCompressorModule.process(buffer);
     limiterModule.process(juce::dsp::ProcessContextReplacing<float>(block));
     outputModule.process(juce::dsp::ProcessContextReplacing<float>(block));
 }

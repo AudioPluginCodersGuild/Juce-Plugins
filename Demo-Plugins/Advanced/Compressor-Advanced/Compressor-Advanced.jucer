@@ -5,6 +5,11 @@
               companyName="Audio Plugin Coders Guild">
   <MAINGROUP id="wZFbaG" name="Compressor-Advanced">
     <GROUP id="{DA25224A-928C-5DDD-DE1C-C627094F2C75}" name="Source">
+      <GROUP id="{D79E0825-FAFB-5DD2-A76F-8B5541AB2F0C}" name="DSP">
+        <FILE id="IXU6w9" name="LVCompressor.cpp" compile="1" resource="0"
+              file="Source/DSP/LVCompressor.cpp"/>
+        <FILE id="X2QxMZ" name="LVCompressor.h" compile="0" resource="0" file="Source/DSP/LVCompressor.h"/>
+      </GROUP>
       <GROUP id="{849A8735-6BDD-FE96-AFCF-30E4EEFA7DDD}" name="Parameters">
         <FILE id="Nfzf90" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters/Parameters.cpp"/>
         <FILE id="ztS4Pn" name="Parameters.h" compile="0" resource="0" file="Source/Parameters/Parameters.h"/>

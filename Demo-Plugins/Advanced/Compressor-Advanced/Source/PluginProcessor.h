@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "./Parameters/Parameters.h"
+#include "DSP/LVCompressor.h"
 
 //==============================================================================
 /**
@@ -71,6 +72,9 @@ private:
     juce::dsp::Bias<float> postBiasModule;
     juce::dsp::LinkwitzRileyFilter<float> hpFilterModule;
     juce::dsp::Limiter<float> limiterModule;
+    
+    LVCompressor lvCompressorModule;
+    
     void updateParameters();
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompressorAdvancedAudioProcessor)

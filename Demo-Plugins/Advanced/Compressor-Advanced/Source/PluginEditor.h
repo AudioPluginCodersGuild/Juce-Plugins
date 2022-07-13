@@ -38,6 +38,7 @@ private:
     juce::Slider limiterThreshDial;
     juce::Slider limiterReleaseDial;
     juce::Slider outputDial;
+    juce::Slider compMixDial;
     
     DialStyle customDialLAF;
     
@@ -45,7 +46,7 @@ private:
     {
         &inputDial, &threshDial, &ratioDial,
         &attackDial, &releaseDial, &limiterThreshDial,
-        &limiterReleaseDial, &outputDial
+        &limiterReleaseDial, &outputDial, &compMixDial
     };
     
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> inputAttach;
@@ -56,6 +57,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> limiterThreshAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> limiterReleaseAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> outputAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> compMixAttach;
     
     void attachSliders();
     
@@ -67,12 +69,13 @@ private:
     juce::Label limiterThreshDialLabel;
     juce::Label limiterReleaseDialLabel;
     juce::Label outputDialLabel;
+    juce::Label compMixDialLabel;
     
     std::vector<juce::Label*> dialLabels =
     {
         &inputDialLabel, &threshDialLabel, &ratioDialLabel,
         &attackDialLabel, &releaseDialLabel, &limiterThreshDialLabel,
-        &limiterReleaseDialLabel, &outputDialLabel
+        &limiterReleaseDialLabel, &outputDialLabel, &compMixDialLabel
     };
     
     juce::GroupComponent ioGroup;

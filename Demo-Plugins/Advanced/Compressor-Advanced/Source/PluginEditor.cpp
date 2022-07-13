@@ -72,10 +72,9 @@ void CompressorAdvancedAudioProcessorEditor::paint (juce::Graphics& g)
 void CompressorAdvancedAudioProcessorEditor::resized()
 {
     auto dialSize = getWidth() * 0.18;
-    auto mainLeftMargin = getWidth() * 0.3;
+    auto mainLeftMargin = getWidth() * 0.23;
     auto leftMargin = getWidth() * 0.03;
     auto secondRowHeight = 1.3;
-    auto limiterMargin = 1.43;
     auto groupY = 0.1;
     auto groupHeight = 2.4;
     
@@ -89,11 +88,13 @@ void CompressorAdvancedAudioProcessorEditor::resized()
     outputDial.setBounds(leftMargin, inputDial.getY() + inputDial.getHeight() * secondRowHeight, dialSize, dialSize);
     attackDial.setBounds(threshDial.getX(), outputDial.getY(), dialSize, dialSize);
     releaseDial.setBounds(ratioDial.getX(), outputDial.getY(), dialSize, dialSize);
+    compMixDial.setBounds(ratioDial.getX() + ratioDial.getWidth(), ratioDial.getY(), dialSize, dialSize);
     
-    compressorGroup.setBounds(threshDial.getX(), threshDial.getY() * groupY, threshDial.getWidth() * 2.0,
+    compressorGroup.setBounds(getWidth() * 0.23,
+                              threshDial.getY() * groupY, threshDial.getWidth() * 3.0,
                               threshDial.getY() + threshDial.getHeight() * groupHeight);
     
-    limiterThreshDial.setBounds(ratioDial.getX() + ratioDial.getWidth() * limiterMargin,
+    limiterThreshDial.setBounds(compMixDial.getX() + compMixDial.getWidth() * 1.15,
                                 inputDial.getY(), dialSize, dialSize);
     
     limiterReleaseDial.setBounds(limiterThreshDial.getX(),

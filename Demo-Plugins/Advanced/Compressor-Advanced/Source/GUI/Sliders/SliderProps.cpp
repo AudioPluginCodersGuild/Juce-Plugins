@@ -45,4 +45,6 @@ void CompressorAdvancedAudioProcessorEditor::attachSliders()
     limiterReleaseAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, LReleaseID, limiterReleaseDial);
     
     outputAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, outputID, outputDial);
+    
+    compMixAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, compMixID, compMixDial);
 }
