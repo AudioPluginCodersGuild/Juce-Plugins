@@ -33,19 +33,29 @@ public:
         jassert (inputBlock.getNumChannels() == numChannels);
         jassert (inputBlock.getNumSamples()  == numSamples);
         
-        for (size_t channel = 0; channel < numChannels; ++channel)
+//        for (size_t channel = 0; channel < numChannels; ++channel)
+//        {
+//            auto* inputSamples  = inputBlock .getChannelPointer (channel);
+//            auto* outputSamples = outputBlock.getChannelPointer (channel);
+//
+//            for (size_t i = 0; i < numSamples; ++i)
+//            {
+//                //outputSamples[i] = _dcFilter.processSample(channel, outputSamples[i]);
+//                outputSamples[i] = processSample (inputSamples[i], channel);
+//            }
+//        }
+        
+        for (size_t n = 0; n < numSamples; ++n)
         {
-            auto* inputSamples  = inputBlock .getChannelPointer (channel);
-            auto* outputSamples = outputBlock.getChannelPointer (channel);
-
-            for (size_t i = 0; i < numSamples; ++i)
+            for (size_t ch = 0; ch < numChannels; ++ch)
             {
-                outputSamples[i] = processSample (inputSamples[i]);
+                outputBlock.getChannelPointer (ch)[n] = _dcFilter.processSample(ch, inputBlock.getChannelPointer (ch)[n]);
+                outputBlock.getChannelPointer (ch)[n] = processSample (inputBlock.getChannelPointer (ch)[n], ch);
             }
         }
     }
     
-    SampleType processSample (SampleType inputSample) noexcept
+    SampleType processSample (SampleType inputSample, int channel) noexcept
     {
         switch (_model)
         {
@@ -63,7 +73,7 @@ public:
 
             case DistortionModel::kSaturation:
             {
-                return processSaturation(inputSample);
+                return processSaturation(inputSample, channel);
                 break;
             }
         }
@@ -85,12 +95,45 @@ public:
     
     SampleType processSoftClipper(SampleType inputSample)
     {
-        return inputSample;
+        auto wetSignal = inputSample * juce::Decibels::decibelsToGain(_input.getNextValue());
+        
+        wetSignal = _piDivisor * std::atan(wetSignal);
+        
+        wetSignal *= 2.0;
+        wetSignal *= juce::Decibels::decibelsToGain(_input.getNextValue() * -0.25);
+        
+        if (std::abs(wetSignal) > 0.99)
+        {
+            wetSignal *= 0.99 / std::abs(wetSignal);
+        }
+        
+        auto mix = (1.0 - _mix.getNextValue()) * inputSample + wetSignal * _mix.getNextValue();
+        
+        return mix * juce::Decibels::decibelsToGain(_output.getNextValue());
     }
     
-    SampleType processSaturation(SampleType inputSample)
+    SampleType processSaturation(SampleType inputSample, int channel)
     {
-        return inputSample;
+        auto drive = juce::jmap(_input.getNextValue(), 0.0f, 24.0f, 0.0f, 6.0f);
+        
+        auto wetSignal = inputSample * juce::Decibels::decibelsToGain(drive);
+        
+        if (wetSignal >= 0.0)
+        {
+            wetSignal = std::tanh(wetSignal);
+        }
+        
+        else
+        {
+            wetSignal = std::tanh(std::sinh(wetSignal)) - 0.2 * wetSignal * std::sin(juce::MathConstants<float>::pi * wetSignal);
+        }
+        
+        wetSignal *= 1.15;
+        wetSignal *= juce::Decibels::decibelsToGain(_input.getNextValue() * -0.05);
+        
+        auto mix = (1.0 - _mix.getNextValue()) * inputSample + wetSignal * _mix.getNextValue();
+        
+        return mix * juce::Decibels::decibelsToGain(_output.getNextValue());
     }
     
     enum class DistortionModel
@@ -110,9 +153,9 @@ private:
     juce::SmoothedValue<float> _input;
     juce::SmoothedValue<float> _mix;
     juce::SmoothedValue<float> _output;
-    
     juce::dsp::LinkwitzRileyFilter<float> _dcFilter;
     
+    float _piDivisor = 2.0 / juce::MathConstants<float>::pi;
     float _sampleRate = 44100.0f;
     
     DistortionModel _model = DistortionModel::kHard;

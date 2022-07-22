@@ -23,6 +23,7 @@ DistortionAdvancedAudioProcessor::DistortionAdvancedAudioProcessor()
 , _treeState(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
+    _treeState.addParameterListener(disModelID, this);
     _treeState.addParameterListener(inputID, this);
     _treeState.addParameterListener(mixID, this);
     _treeState.addParameterListener(outputID, this);
@@ -30,6 +31,7 @@ DistortionAdvancedAudioProcessor::DistortionAdvancedAudioProcessor()
 
 DistortionAdvancedAudioProcessor::~DistortionAdvancedAudioProcessor()
 {
+    _treeState.removeParameterListener(disModelID, this);
     _treeState.removeParameterListener(inputID, this);
     _treeState.removeParameterListener(mixID, this);
     _treeState.removeParameterListener(outputID, this);
@@ -38,11 +40,15 @@ DistortionAdvancedAudioProcessor::~DistortionAdvancedAudioProcessor()
 juce::AudioProcessorValueTreeState::ParameterLayout DistortionAdvancedAudioProcessor::createParameterLayout()
 {
     std::vector <std::unique_ptr<juce::RangedAudioParameter>> params;
-        
+    
+    juce::StringArray disModels = {"Hard", "Soft", "Saturation"};
+    
+    auto pDriveModel = std::make_unique<juce::AudioParameterChoice>(disModelID, disModelName, disModels, 0);
     auto pDrive = std::make_unique<juce::AudioParameterFloat>(inputID, inputName, 0.0f, 24.0f, 0.0f);
     auto pMix = std::make_unique<juce::AudioParameterFloat>(mixID, mixName, 0.0f, 1.0f, 1.0f);
     auto pOutput = std::make_unique<juce::AudioParameterFloat>(outputID, outputName, -24.0f, 24.0f, 0.0f);
     
+    params.push_back(std::move(pDriveModel));
     params.push_back(std::move(pDrive));
     params.push_back(std::move(pMix));
     params.push_back(std::move(pOutput));
@@ -57,6 +63,14 @@ void DistortionAdvancedAudioProcessor::parameterChanged(const juce::String &para
 
 void DistortionAdvancedAudioProcessor::updateParameters()
 {
+    auto model = static_cast<int>(_treeState.getRawParameterValue(disModelID)->load());
+    switch(model)
+    {
+        case 0: _distortionModule.setDistortionModel(Distortion<float>::DistortionModel::kHard); break;
+        case 1: _distortionModule.setDistortionModel(Distortion<float>::DistortionModel::kSoft); break;
+        case 2: _distortionModule.setDistortionModel(Distortion<float>::DistortionModel::kSaturation); break;
+    }
+    
     _distortionModule.setDrive(_treeState.getRawParameterValue(inputID)->load());
     _distortionModule.setMix(_treeState.getRawParameterValue(mixID)->load());
     _distortionModule.setOutput(_treeState.getRawParameterValue(outputID)->load());

@@ -10,6 +10,9 @@
 
 #include "Parameters.h"
 
+const juce::String disModelID = "disModel";
+const juce::String disModelName = "Distortion Model";
+
 const juce::String inputID      = "input";
 const juce::String inputName    = "Input";
 

@@ -11,6 +11,9 @@
 #pragma once
 #include <JuceHeader.h>
 
+extern const juce::String disModelID;
+extern const juce::String disModelName;
+
 extern const juce::String inputID;
 extern const juce::String inputName;
 
